@@ -5,13 +5,14 @@ from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 
 class LinearRegression:
-    def __init__(self, X, y, regularization=None, alpha=0.1, lr=3e-4):
+    def __init__(self, X, y, regularization=None, alpha=0.1, lr=3e-4, n_steps=1000):
         self.X = np.hstack((np.ones((X.shape[0],1)), X))
         self.y = y
         
         self.regularization = regularization
         self.alpha = alpha
         self.lr = lr
+        self.n_steps = n_steps
     
     def _compute_loss(self, X, y):
         m = y.shape[0]
@@ -38,6 +39,16 @@ class LinearRegression:
         
         loss = 1/(2*m) * np.sum(np.square(h-y)) + self.alpha * np.sum(np.square(self.weights))
             
+        return loss
+    
+    # Compute cost function
+    def compute_loss(self, X, y):
+        if self.regularization == 'l1':
+            loss = self._compute_loss_l1(X, y)
+        elif self.regularization == 'l2':
+            loss = self._compute_loss_l2(X, y)
+        else:
+            loss = self._compute_loss(X, y)
         return loss
     
     def _compute_grad(self, X, y):
@@ -67,15 +78,6 @@ class LinearRegression:
         
         return grad
     
-    # Compute cost function
-    def compute_loss(self, X, y):
-        if self.regularization == 'l1':
-            loss = self._compute_loss_l1(X, y)
-        elif self.regularization == 'l2':
-            loss = self._compute_loss_l2(X, y)
-        else:
-            loss = self._compute_loss(X, y)
-        return loss
     
     # Compute gradient
     def compute_gradient(self, X, y):
@@ -92,12 +94,12 @@ class LinearRegression:
         self.weights = np.random.rand(self.X.shape[1])
         self.bias = self.weights[0]
         
-        for i in range(10000):
+        for i in range(self.n_steps):
             grad = self.compute_gradient(self.X, self.y)
             
             self.weights -= self.lr * grad
             
-            if i == len(range(10000)) - 1:
+            if i == len(range(self.n_steps)) - 1:
                 loss = self.compute_loss(self.X, self.y)
                 print(f'Loss at iteration {i}: {loss}')
                 print(f'Weights: {self.weights}')
@@ -137,9 +139,9 @@ def main():
     
     X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.2)
 
-    model_lr = LinearRegression(X_tr, y_tr)
-    model_lr_l1 = LinearRegression(X_tr, y_tr, regularization='l1', alpha=0.1)
-    model_lr_l2 = LinearRegression(X_tr, y_tr, regularization='l2', alpha=0.1)
+    model_lr = LinearRegression(X_tr, y_tr, lr=3e-4, n_steps=10000)
+    model_lr_l1 = LinearRegression(X_tr, y_tr, regularization='l1', alpha=0.1, lr=3e-4, n_steps=10000)
+    model_lr_l2 = LinearRegression(X_tr, y_tr, regularization='l2', alpha=0.1, lr=3e-4, n_steps=10000)
     model_lr_a = LinearRegression(X_tr, y_tr)
     
     print("Fitting model without regularization:")
